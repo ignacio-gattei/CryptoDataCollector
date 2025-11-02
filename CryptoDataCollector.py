@@ -60,8 +60,36 @@ class CryptoDataCollector:
         print(f"Descarga completa: {len(self.data)} registros.")
         return self.data
 
+    def to_dataframe(self):
+        """Convierte los datos descargados a un df de pandas."""
+        if not self.data:
+            print("No hay datos.")
+            return None
 
+        self.df = pd.DataFrame(self.data)
+
+        # Renombrar columnas
+        self.df = self.df.rename(columns={
+            "id": "ID",
+            "symbol": "Símbolo",
+            "name": "Nombre",
+            "current_price": f"Precio_actual",
+            "market_cap": "Capitalización_de_mercado",
+            "market_cap_rank": "Ranking",
+            "total_volume": "Volumen_total",
+            "high_24h": "Máximo_24h",
+            "low_24h": "Mínimo_24h",
+            "price_change_percentage_24h": "%_cambio_24h",
+            "circulating_supply": "Suministro_en_circulación",
+            "total_supply": "Suministro_total",
+            "ath": "Máximo_historico",
+            "ath_change_percentage": "%_desde_máximo_historico",
+            "atl": "Mínimo_historico",
+            "atl_change_percentage": "%_desde_mínimo_historico",
+            "last_updated": "Última_actualización"
+        })
 
 if __name__ == "__main__":
     cg = CryptoDataCollector(vs_currency="usd", total=500)
     cg.get_all_pages()
+    cg.to_dataframe()
