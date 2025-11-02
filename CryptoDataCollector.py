@@ -89,7 +89,45 @@ class CryptoDataCollector:
             "last_updated": "Última_actualización"
         })
 
+
+
+    def print_df(self, n=None):
+        """Muestra las primeras n filas."""
+        if self.df.empty:
+            print("El DataFrame está vacío.")
+            return
+
+        if n is None:
+         n = self.total
+        print(self.df.head(n))
+
+    def save_csv(self, filename=None):
+        """Guarda el DataFrame a un archivo CSV con fecha en el nombre."""
+        if self.df.empty:
+            print("El DataFrame está vacío.")
+            return
+
+        if not filename:
+            fecha = datetime.now().strftime("%Y-%m-%d")
+            filename = f"coingecko_top{self.total}_{self.vs_currency}_{fecha}.csv"
+
+        self.df.to_csv(filename, index=False, encoding="utf-8-sig")
+        print(f"Archivo guardado como: {filename}")
+        return filename
+
+    def count_rows_df(self):
+        """Devuelve e imprime la cantidad de filas del DataFrame."""
+        if self.df.empty:
+            print("El DataFrame está vacío.")
+            return 0
+
+        count = len(self.df)
+        print(f"Cantidad de registros en el DataFrame: {count}")
+        return count
+
 if __name__ == "__main__":
     cg = CryptoDataCollector(vs_currency="usd", total=500)
     cg.get_all_pages()
     cg.to_dataframe()
+    cg.print_df()
+    cg.count_rows_df()
