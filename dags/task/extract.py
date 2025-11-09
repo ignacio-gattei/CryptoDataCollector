@@ -1,12 +1,28 @@
 import requests
 import pandas as pd
 import time
+import os
 from datetime import datetime
+from airflow.models import BaseOperator
+from airflow.exceptions import AirflowSkipException
 
-class CryptoDataCollectorExtractor:
-    BASE_URL = "https://api.coingecko.com/api/v3/coins/markets"
 
-    def __init__(self, vs_currency="usd", total=100, per_page=250, delay=65, numb_reqs_until_waiting=4):
+BASE_URL = "https://api.coingecko.com/api/v3/coins/markets"
+FILE_DATA_NAME = "crypto_data_extracted.parquet"
+
+class CryptoDataCollectorExtractor(BaseOperator):
+
+    
+
+
+    def __init__(self,
+                vs_currency="usd",
+                total=100,
+                per_page=250,
+                delay=65, 
+                numb_reqs_until_waiting=4,
+                output_path = "",
+                *args,**kwargs):
         """
         Inicializa clase
         :param vs_currency: moneda
@@ -15,6 +31,7 @@ class CryptoDataCollectorExtractor:
         :param delay: segundos de espera entre requests (para el limit request de la cuenta free)
         :numb_req_until_waiting: es la cantidad de requests que hace antes de esperar
         """
+        super(CryptoDataCollectorExtractor, self).__init__(*args, **kwargs)
         self.vs_currency = vs_currency
         self.total = total
         self.per_page = per_page
@@ -23,6 +40,16 @@ class CryptoDataCollectorExtractor:
         self.data = []
         self.df = pd.DataFrame()
         self.numb_reqs_until_waiting = numb_reqs_until_waiting
+        self.output_path = os.path.join(output_path, FILE_DATA_NAME)
+
+
+    def execute(self, context):
+        self.get_all_pages()
+        df = self.get_dataframe()
+        df.to_parquet(self.output_path)
+        if df.empty:
+            raise AirflowSkipException('No se extrayeron datos')
+        return self.output_path
 
     def get_page(self, page):
         """Request, obtiene una pagina"""
@@ -34,8 +61,7 @@ class CryptoDataCollectorExtractor:
             "sparkline": "false",
             "price_change_percentage": "1h,24h,7d"
         }
-
-        response = requests.get(self.BASE_URL, params=params)
+        response = requests.get(BASE_URL, params=params)
         if response.status_code == 200:
             return response.json()
         else:
@@ -45,10 +71,10 @@ class CryptoDataCollectorExtractor:
     def get_all_pages(self):
         """Descarga todas las páginas de criptomonedas."""
         i = 0
-        print(f"🔄 Descargando top {self.total} criptomonedas en {self.vs_currency.upper()}...")
+        print(f"Descargando top {self.total} criptomonedas en {self.vs_currency.upper()}...")
 
         for page in range(1, self.pages + 1):
-            print(f"📥 Página {page}/{self.pages}")
+            print(f"Página {page}/{self.pages}")
             data = self.get_page(page)
             self.data.extend(data)
             i += 1
