@@ -1,0 +1,37 @@
+name: Run Pytest Suite
+
+  # Ejecutar los tests en cada push o PR a las ramas principales
+on: [ push, pull_request]
+
+jobs:
+  test:
+    name: Run pytest on Python ${{ matrix.python-version }}
+    runs-on: ubuntu-latest
+
+    # Ejecutamos los tests en múltiples versiones de Python (opcional)
+    strategy:
+      matrix:
+        python-version: [3.11]
+
+    steps:
+      # Clonar el repositorio
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      # Configurar la versión de Python
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      # Instalar dependencias
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt || true  # instala requirements si existe
+          pip install pytest pandas
+
+      # Ejecutar pytest con salida detallada y cobertura
+      - name: Run pytest
+        run: |
+          pytest -v --maxfail=3 --disable-warnings --tb=short
