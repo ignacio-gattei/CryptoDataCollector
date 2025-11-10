@@ -10,6 +10,7 @@ import redshift_connector
 from task.extract import CryptoDataCollectorExtractor
 from task.transform import CryptoDataCollectorTransformer
 from task.load import CryptoDataCollectorLoader
+from task.extract_exchange_rate import ExchangeRateExtractor
 
 
 
@@ -17,7 +18,7 @@ from task.load import CryptoDataCollectorLoader
 DAG_PATH = os.path.dirname(os.path.realpath(__file__))
 
 
-# Ruta a la carpeta que está al mismo nivel que dags/
+# Ruta a la carpeta donde se guardaran los datos extraidos y convertidos
 DATA_PATH = os.path.abspath(os.path.join(DAG_PATH, "..", "data"))
 
 
@@ -35,6 +36,11 @@ with DAG(
     catchup=False,
 ) as dag:
 
+    extract_exchange_rate = ExchangeRateExtractor(
+        task_id='extract_exchange_rate',
+        source_currency="USD",
+        target_currency="ARS",
+        output_path = DATA_PATH)
 
 
     extract_task = CryptoDataCollectorExtractor(
