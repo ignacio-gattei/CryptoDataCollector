@@ -57,3 +57,42 @@ def normalize_to_int(df,columns=None):
     for col in columns:
         df[col] = df[col].apply(lambda x: None if pd.isnull(x) else int(float(x)))
     return df
+
+def format_number_short(num, decimales=2):
+    """
+    Convierte un número grande en un formato legible con sufijos (K, M, B, T).
+
+    Parámetros
+    ----------
+    num : int | float | None
+        Número a formatear.
+    decimales : int
+        Cantidad de decimales a mostrar (por defecto 2).
+
+    Retorna
+    -------
+    str
+        Cadena formateada con el sufijo correspondiente.
+    """
+    # Manejo de valores nulos o no numéricos
+    if num is None:
+        return "-"
+    
+    try:
+        num = float(num)
+    except (TypeError, ValueError):
+        return "-"
+
+    abs_num = abs(num)
+
+    # Determinar el sufijo adecuado según la magnitud del número
+    if abs_num >= 1_000_000_000_000:
+        return f"{num / 1_000_000_000_000:.{decimales}f}T"
+    elif abs_num >= 1_000_000_000:
+        return f"{num / 1_000_000_000:.{decimales}f}B"
+    elif abs_num >= 1_000_000:
+        return f"{num / 1_000_000:.{decimales}f}M"
+    elif abs_num >= 1_000:
+        return f"{num / 1_000:.{decimales}f}K"
+    else:
+        return f"{num:.{decimales}f}"

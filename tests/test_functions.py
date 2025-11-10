@@ -1,6 +1,6 @@
 import pytest
 import pandas as pd
-from utils.functions import normalize_to_decimal,normalize_to_int
+from utils.functions import normalize_to_decimal,normalize_to_int,format_number_short
 from pandas.testing import assert_frame_equal
 from decimal import Decimal
 
@@ -107,3 +107,23 @@ def test_normalize_to_decimal_non_numeric_string():
     # Debe lanzar InvalidOperation (o ValueError)
     with pytest.raises(Exception):
         normalize_to_decimal(df.copy(), columns=['x'])    
+
+
+
+def test_format_number_short():
+    """
+    Verifica que la función formatee correctamente diferentes magnitudes numéricas.
+    """
+    # Valores grandes
+    assert format_number_short(1520348589) == "1.52B"
+    assert format_number_short(27244874229) == "27.24B"
+    assert format_number_short(15432) == "15.43K"
+
+    # Valores pequeños
+    assert format_number_short(0.179627) == "0.18"
+
+    # Valor None
+    assert format_number_short(None) == "-"
+
+    # Valor no numérico
+    assert format_number_short("texto") == "-"
