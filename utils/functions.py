@@ -96,3 +96,31 @@ def format_number_short(num, decimales=2):
         return f"{num / 1_000:.{decimales}f}K"
     else:
         return f"{num:.{decimales}f}"
+    
+
+def union_2_columns_to_1_column(df, col1, col2, new_col_name="combined"):
+    """
+    Une los valores de dos columnas de un DataFrame en una sola columna,
+    similar a la operación UNION en SQL (una debajo de otra).
+
+    Parámetros
+    ----------
+    df : pandas.DataFrame
+        DataFrame de entrada.
+    col1 : str
+        Nombre de la primera columna.
+    col2 : str
+        Nombre de la segunda columna.
+
+    Retorna
+    -------
+    pandas.Series
+        Columna única con los valores combinados de ambas columnas.
+    """
+    combined = pd.concat([df[col1], df[col2]], ignore_index=True)
+
+     # Creamos un nuevo DataFrame con la columna combinada y el nombre indicado
+    result_df = pd.DataFrame({new_col_name: combined})
+
+    # Devolvemos la serie combinada
+    return result_df
