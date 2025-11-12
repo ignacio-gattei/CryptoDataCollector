@@ -36,7 +36,12 @@ class ExchangeRateExtractor(BaseOperator):
         df.to_parquet(self.output_path)
         if df.empty:
             raise AirflowSkipException('No se extrayeron datos')
+        
+        context['ti'].xcom_push(key='source_currency', value=self.source_currency)
+        context['ti'].xcom_push(key='target_currency', value=self.target_currency)
         return self.output_path
+    
+
 
     def get_response(self):
         response = requests.get(BASE_URL)

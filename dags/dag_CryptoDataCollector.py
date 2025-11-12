@@ -12,6 +12,7 @@ from task.transform import CryptoDataCollectorTransformer
 from task.load import CryptoDataCollectorLoader
 from task.extract_exchange_rate import ExchangeRateExtractor
 from task.load_exchange_rate import ExchangeRateLoader
+from task.transform_exchange_rate import ExchangeRateTransformer
 
 
 
@@ -38,18 +39,9 @@ with DAG(
     catchup=False,
 ) as dag:
 
-    extract_exchange_rate = ExchangeRateExtractor(
-        task_id='extract_exchange_rate',
-        source_currency="USD",
-        target_currency="ARS",
-        output_path = DATA_PATH)
-    
-    load_exchange_rate = ExchangeRateLoader(
-        task_id='load_exchange_rate_to_redshift'
-    )
 
 
-    extract_task = CryptoDataCollectorExtractor(
+    extract_crypto_data = CryptoDataCollectorExtractor(
         task_id='extract_crypto_data',
         vs_currency="usd",
         total=100,
@@ -59,15 +51,33 @@ with DAG(
         output_path = DATA_PATH)
 
   
-    transform_task = CryptoDataCollectorTransformer(
+    transform_crypto_data= CryptoDataCollectorTransformer(
         task_id='transform_crypto_data',
         output_path = DATA_PATH
     )
 
-    load_task = CryptoDataCollectorLoader(
+    load_crypto_data = CryptoDataCollectorLoader(
         task_id='load_crypto_data_to_redshift'
     )
 
+    extract_exchange_rate = ExchangeRateExtractor(
+        task_id='extract_exchange_rate',
+        source_currency="USD",
+        target_currency="ARS",
+        output_path = DATA_PATH)
+    
+
+    transform_exchange_rate = ExchangeRateTransformer(
+        task_id='transform_exchange_rate',
+        output_path = DATA_PATH
+    )
+    
+    load_exchange_rate = ExchangeRateLoader(
+        task_id='load_exchange_rate_to_redshift'
+    )
+
+
  
     # Dependencia de tareas
-    extract_exchange_rate >> load_exchange_rate  
+    extract_exchange_rate >> transform_exchange_rate >> load_exchange_rate  
+    extract_crypto_data >> transform_crypto_data >> load_crypto_data 

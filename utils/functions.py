@@ -124,3 +124,67 @@ def union_2_columns_to_1_column(df, col1, col2, new_col_name="combined"):
 
     # Devolvemos la serie combinada
     return result_df
+
+
+def get_currency_name(symbol: str):
+    """
+    Retorna el nombre completo de una moneda según su símbolo.
+
+    Parámetros
+    ----------
+    symbol : str
+        Símbolo de la moneda (por ejemplo: 'USD', 'EUR').
+
+    Retorna
+    -------
+    str
+        Nombre completo de la moneda. Si el símbolo no es reconocido,
+        devuelve 'Unknown currency'.
+    """
+
+    # Diccionario con las monedas más comunes
+    currency_names = {
+        "USD": "US Dollar",
+        "EUR": "Euro",
+        "ARS": "Argentine Peso",
+        "GBP": "British Pound",
+        "JPY": "Japanese Yen",
+        "CNY": "Chinese Yuan",
+        "CAD": "Canadian Dollar",
+        "AUD": "Australian Dollar",
+        "CHF": "Swiss Franc",
+        "MXN": "Mexican Peso",
+        "BRL": "Brazilian Real"
+        }
+
+    symbol = symbol.upper().strip()
+    return currency_names.get(symbol, "Unknown currency")
+
+from decimal import Decimal, InvalidOperation, ROUND_HALF_UP
+
+
+def to_decimal_2(value):
+    """
+    Convierte un valor a Decimal con 2 decimales.
+    
+    Parámetros:
+    -----------
+    value : str | int | float | Decimal
+        Valor a convertir.
+        
+    Retorna:
+    --------
+    Decimal | None
+        Valor convertido a Decimal con 2 decimales,
+        o None si el valor no es válido.
+    """
+    if value is None:
+        return None
+    
+    try:
+        decimal_value = Decimal(str(value))
+        # Redondeamos a 2 decimales
+        decimal_value = decimal_value.quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)
+        return decimal_value
+    except (InvalidOperation, ValueError, TypeError):
+        return None
