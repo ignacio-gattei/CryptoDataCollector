@@ -1,6 +1,6 @@
 import pytest
 import pandas as pd
-from utils.functions import normalize_to_decimal,normalize_to_int,format_number_short
+from utils.functions import normalize_to_decimal,normalize_to_int,format_number_short,to_decimal_2,get_currency_name
 from pandas.testing import assert_frame_equal
 from decimal import Decimal
 
@@ -127,3 +127,25 @@ def test_format_number_short():
 
     # Valor no numérico
     assert format_number_short("texto") == "-"
+
+
+def test_to_decimal_2_valid_numbers():
+    """Prueba básica con números con y sin decimales y distintos tipos de datos"""
+    assert to_decimal_2(10) == Decimal("10.00")
+    assert to_decimal_2(10.123) == Decimal("10.12")
+    assert to_decimal_2("10.126") == Decimal("10.13")
+    assert to_decimal_2(Decimal("3.456")) == Decimal("3.46")
+
+
+def test_get_currency_name_valid_symbols():
+    """Prueba de conversion de simbolo a nombre de moneda"""
+    assert get_currency_name("USD") == "US Dollar"
+    assert get_currency_name("eur") == "Euro"   # minúsculas
+    assert get_currency_name(" ArS ") == "Argentine Peso"  # con espacios
+
+
+def test_get_currency_name_invalid_symbol():
+    """Prueba de moneda no soportada"""
+    assert get_currency_name("XYZ") == "Unknown currency"
+    assert get_currency_name("") == "Unknown currency"
+    assert get_currency_name("pesos") == "Unknown currency"

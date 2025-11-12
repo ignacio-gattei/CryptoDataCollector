@@ -188,3 +188,4 @@ def to_decimal_2(value):
         return decimal_value
     except (InvalidOperation, ValueError, TypeError):
         return None
+    
