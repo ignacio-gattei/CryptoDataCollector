@@ -7,7 +7,7 @@ from airflow.models import BaseOperator
 from airflow.exceptions import AirflowSkipException
 
 
-BASE_URL = "https://dolarapi.com/v1/dolares/cripto"
+BASE_URL = "https://dolarapi.com/v1/dolares/bolsa"
 FILE_DATA_NAME = "exchange_rate_extracted.parquet"
 
 class ExchangeRateExtractor(BaseOperator):

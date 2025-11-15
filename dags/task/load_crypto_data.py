@@ -10,19 +10,15 @@ from decimal import Decimal, getcontext, InvalidOperation
 
 FILE_DATA_NAME = "crypto_data_transformed.parquet"
 
-TABLE_CRYPTOCURRENCIES = """
-CREATE TABLE IF NOT EXISTS CRYPTOCURRENCIES (
-id VARCHAR(100) PRIMARY KEY,
-symbol VARCHAR(100),
-name VARCHAR(500),
-image VARCHAR(1000)
-);
-"""
 
-TABLE_CRYPTOCURRENCIES_FACTS = """
-CREATE TABLE IF NOT EXISTS CRYPTOCURRENCIES_FACTS (
-id VARCHAR(100),                               -- ID crypto
-current_price DECIMAL(38,18),                                -- Precio actual
+
+CREATE_TABLE_STG_CRYPTOCURRENCIES_DATA = """
+CREATE TABLE IF NOT EXISTS STG_CRYPTOCURRENCIES_DATA (
+id VARCHAR(100),                                            -- ID crypto
+symbol VARCHAR(100),                                        -- Simbolo de la crypto
+name VARCHAR(500),                                          -- Nombre de la crypto
+image VARCHAR(1000),                                        -- Logo de la crypto
+current_price DECIMAL(38,18),                               -- Precio actual
 market_cap BIGINT,                                          -- Capitalización de mercado
 market_cap_rank INT,                                        -- Ranking de capitalización
 fully_diluted_valuation BIGINT,                             -- Valoración diluida total
@@ -42,20 +38,62 @@ ath_date TIMESTAMP,                                         -- Fecha ATH
 atl DECIMAL(38,18),                                          -- Precio mínimo histórico
 atl_change_percentage DECIMAL(38,18),                        -- cambio desde el ATL
 atl_date TIMESTAMP,                                         -- Fecha ATL
-load_date TIMESTAMP DEFAULT GETDATE()                       -- Fecha de carga en DW
+load_date TIMESTAMP DEFAULT GETDATE(),                       -- Fecha de carga en DW
+last_updated TIMESTAMP                                        -- Fecha de la ultima actualizacion de la cotizacion
 );
 """
 
-INSERT_CRYPTOCURRENCIES = """INSERT INTO CRYPTOCURRENCIES (id, symbol, name, image) VALUES (%s, %s, %s, %s)"""
 
-INSERT_CRYPTOCURRENCIES_FACTS = """INSERT INTO CRYPTOCURRENCIES_FACTS (
-id, current_price, market_cap, market_cap_rank, fully_diluted_valuation, 
-total_volume, high_24h, low_24h, price_change_24h, price_change_percentage_24h,
-market_cap_change_24h, market_cap_change_percentage_24h, circulating_supply,
-total_supply, max_supply, ath, ath_change_percentage, ath_date, atl, atl_change_percentage, atl_date) 
-VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+CREATE_TABLE_DIM_CRYPTOCURRENCIES = """
+CREATE TABLE IF NOT EXISTS DIM_CRYPTOCURRENCIES (
+id VARCHAR(100) PRIMARY KEY,
+symbol VARCHAR(100),
+name VARCHAR(500),
+image VARCHAR(1000)
+);
 """
 
+CREATE_TABLE_FACTS_CRYPTOCURRENCIES = """
+CREATE TABLE IF NOT EXISTS FACTS_CRYPTOCURRENCIES (
+id VARCHAR(50),                               -- ID crypto
+current_price_usd DECIMAL(38,18),                                -- Precio actual en dolares
+current_price_other_currency DECIMAL(38,18),                 -- Precio actual en otra moneda
+other_currency VARCHAR(5),                               -- Tipo de la otra moneda
+market_cap BIGINT,                                          -- Capitalización de mercado
+market_cap_rank INT,                                        -- Ranking de capitalización
+fully_diluted_valuation BIGINT,                             -- Valoración diluida total
+total_volume BIGINT,                                        -- Volumen total negociado
+high_24h DECIMAL(38,18),                                     -- Máximo en 24h
+low_24h DECIMAL(38,18),                                      -- Mínimo en 24h
+price_change_24h DECIMAL(38,18),                             -- Cambio de precio 24h
+price_change_percentage_24h DECIMAL(38,18),                  -- cambio precio 24h
+market_cap_change_24h DECIMAL(38,18),                               -- Cambio de market cap 24h
+market_cap_change_percentage_24h DECIMAL(38,18),             -- cambio market cap 24h
+circulating_supply DECIMAL(38,18),                           -- Suministro en circulación
+total_supply BIGINT,                                 -- Suministro total
+max_supply BIGINT,                                   -- Suministro máximo
+ath DECIMAL(38,18),                                          -- Precio máximo histórico
+ath_change_percentage DECIMAL(38,18),                        -- cambio desde el ATH
+ath_date TIMESTAMP,                                         -- Fecha ATH
+atl DECIMAL(38,18),                                          -- Precio mínimo histórico
+atl_change_percentage DECIMAL(38,18),                        -- cambio desde el ATL
+atl_date TIMESTAMP,                                         -- Fecha ATL
+load_date TIMESTAMP DEFAULT GETDATE(),                       -- Fecha de carga en DW
+last_updated TIMESTAMP                                        -- Fecha de la ultima actualizacion de la cotizacion
+);
+"""
+
+INSERT_STG_CRYPTOCURRENCIES_DATA= """INSERT INTO STG_CRYPTOCURRENCIES_DATA (
+id,symbol,name,image, current_price, market_cap, market_cap_rank, fully_diluted_valuation, 
+total_volume, high_24h, low_24h, price_change_24h, price_change_percentage_24h,
+market_cap_change_24h, market_cap_change_percentage_24h, circulating_supply,
+total_supply, max_supply, ath, ath_change_percentage, ath_date, atl, atl_change_percentage, atl_date, last_updated) 
+VALUES (%s, %s, %s,%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+"""
+
+DROP_TABLE_DIM_CRYPTOCURRENCIES = "DROP TABLE IF EXISTS DIM_CRYPTOCURRENCIES;"
+DROP_TABLE_FACTS_CRYPTOCURRENCIES = "DROP TABLE IF EXISTS FACTS_CRYPTOCURRENCIES;"
+DROP_TABLE_STG_CRYPTOCURRENCIES_DATA = "DROP TABLE IF EXISTS STG_CRYPTOCURRENCIES_DATA;"
 
 
 class CryptoDataCollectorLoader(BaseOperator):
@@ -73,7 +111,6 @@ class CryptoDataCollectorLoader(BaseOperator):
         self.input_path = context['ti'].xcom_pull(task_ids='transform_crypto_data')
         df = pd.read_parquet(self.input_path)
         self.connection_db = self.connect_to_db()
-        self.drop_tables()
         self.create_tables()
         self.load_crypto_data()
 
@@ -96,16 +133,18 @@ class CryptoDataCollectorLoader(BaseOperator):
     
     def create_tables(self):
         cursor = self.connection_db.cursor()
-        cursor.execute(TABLE_CRYPTOCURRENCIES)    
-        cursor.execute(TABLE_CRYPTOCURRENCIES_FACTS)  
+        cursor.execute(CREATE_TABLE_DIM_CRYPTOCURRENCIES)    
+        cursor.execute(CREATE_TABLE_FACTS_CRYPTOCURRENCIES)
+        cursor.execute(CREATE_TABLE_STG_CRYPTOCURRENCIES_DATA)  
         self.connection_db.commit()  
         cursor.close()
 
 
     def drop_tables(self):
         cursor = self.connection_db.cursor()
-        cursor.execute("DROP TABLE IF EXISTS CRYPTOCURRENCIES;")
-        cursor.execute("DROP TABLE IF EXISTS CRYPTOCURRENCIES_FACTS;") 
+        cursor.execute(DROP_TABLE_DIM_CRYPTOCURRENCIES)    
+        cursor.execute(DROP_TABLE_FACTS_CRYPTOCURRENCIES)
+        cursor.execute(DROP_TABLE_STG_CRYPTOCURRENCIES_DATA)  
         self.connection_db.commit()  
         cursor.close()
 
@@ -115,14 +154,12 @@ class CryptoDataCollectorLoader(BaseOperator):
         df = pd.read_parquet(self.input_path)
 
 
-        cursor.executemany( INSERT_CRYPTOCURRENCIES , [
-            ( row.id,row.symbol,row.name,row.image) for row in df.itertuples(index=False)
-        ])
-
-
-        cursor.executemany( INSERT_CRYPTOCURRENCIES_FACTS , [
+        cursor.executemany( INSERT_STG_CRYPTOCURRENCIES_DATA , [
         (
             row.id,
+            row.symbol,
+            row.name,
+            row.image,
             row.current_price,
             row.market_cap,
             row.market_cap_rank,
@@ -142,7 +179,8 @@ class CryptoDataCollectorLoader(BaseOperator):
             row.ath_date,
             row.atl,
             row.atl_change_percentage,
-            row.atl_date
+            row.atl_date,
+            row.last_updated
         )
         for row in df.itertuples(index=False)
         ])
