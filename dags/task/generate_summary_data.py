@@ -18,7 +18,6 @@ load_date TIMESTAMP DEFAULT GETDATE()
 );
 """
 
-
 INSERT_DIM_CRYPTOCURRENCIES = """
 INSERT INTO DIM_CRYPTOCURRENCIES 
 (id, symbol, name, image) 
@@ -26,6 +25,26 @@ SELECT
 C.id,C.symbol,C.name,C.image
 FROM STG_CRYPTOCURRENCIES_DATA C
 WHERE NOT EXISTS (SELECT 1 FROM DIM_CRYPTOCURRENCIES D WHERE D.id =  C.id)
+""" 
+
+AGGREGATE_PRICE_VARIATION = """
+WITH LAST_FACTS_CRYPTOCURRENCIES AS (
+    SELECT
+        id,
+        current_price_usd AS last_price,
+        ROW_NUMBER() OVER (PARTITION BY id ORDER BY last_updated DESC) AS rn
+    FROM FACTS_CRYPTOCURRENCIES
+)
+UPDATE STG_CRYPTOCURRENCIES_DATA
+SET
+    price_change_since_last_update = (current_price_usd - L.last_price),
+    price_change_percentage_since_last_update = CASE
+                                                WHEN L.last_price IS NULL OR L.last_price = 0 THEN NULL
+                                                ELSE ((current_price_usd - L.last_price) / L.last_price) * 100
+                                                END
+FROM LAST_FACTS_CRYPTOCURRENCIES AS L
+WHERE STG_CRYPTOCURRENCIES_DATA.id = L.id
+AND L.rn = 1;
 """ 
 
 
@@ -37,6 +56,7 @@ INSERT INTO FACTS_CRYPTOCURRENCIES (
     current_price_other_currency,
     other_currency,
     market_cap,
+    market_cap_short_number,
     market_cap_rank,
     fully_diluted_valuation,
     total_volume,
@@ -44,6 +64,8 @@ INSERT INTO FACTS_CRYPTOCURRENCIES (
     low_24h,
     price_change_24h,
     price_change_percentage_24h,
+    price_change_since_last_update,
+    price_change_percentage_since_last_update,
     market_cap_change_24h,
     market_cap_change_percentage_24h,
     circulating_supply,
@@ -59,10 +81,11 @@ INSERT INTO FACTS_CRYPTOCURRENCIES (
 )
 SELECT 
     C.id,
-    C.current_price AS current_price_usd,
-    C.current_price * ER.exchange_rate AS current_price_other_currency,
+    C.current_price_usd,
+    C.current_price_usd * ER.exchange_rate AS current_price_other_currency,
     ER.target_currency_id AS other_currency,
     C.market_cap,
+    C.market_cap_short_number,
     C.market_cap_rank,
     C.fully_diluted_valuation,
     C.total_volume,
@@ -70,6 +93,8 @@ SELECT
     C.low_24h,
     C.price_change_24h,
     C.price_change_percentage_24h,
+    C.price_change_since_last_update,
+    C.price_change_percentage_since_last_update,
     C.market_cap_change_24h,
     C.market_cap_change_percentage_24h,
     C.circulating_supply,
@@ -91,7 +116,8 @@ QUALIFY ROW_NUMBER() OVER (
 """
 
 
-DEPURATE_TEMP_CRYPTOCURRENCIES= """DELETE STG_CRYPTOCURRENCIES_DATA WHERE last_updated < current_timestamp"""
+
+DEPURATE_STG_CRYPTOCURRENCIES= """DELETE STG_CRYPTOCURRENCIES_DATA WHERE last_updated < current_timestamp"""
 
 INSERT_FACTS_MARKET_CAP_RANK= """
 INSERT INTO FACTS_MARKET_CAP_RANK (
@@ -111,6 +137,7 @@ SELECT
 FROM STG_CRYPTOCURRENCIES_DATA
 GROUP BY 1
 """
+
 DROP_TABLE_FACTS_MARKET_CAP_RANK= "DROP TABLE IF EXISTS FACTS_MARKET_CAP_RANK;"
 
 class SummaryGenerator(BaseOperator):
@@ -125,7 +152,7 @@ class SummaryGenerator(BaseOperator):
 
     def execute(self, context):
         self.connection_db = self.connect_to_db()
-        self.drop_tables()
+        #self.drop_tables()
         self.create_tables()
         self.aggregate_crypto_data()
 
@@ -164,10 +191,11 @@ class SummaryGenerator(BaseOperator):
     def aggregate_crypto_data(self):
         cursor = self.connection_db.cursor()
 
+        cursor.execute(AGGREGATE_PRICE_VARIATION)
         cursor.execute(INSERT_DIM_CRYPTOCURRENCIES)
         cursor.execute(INSERT_FACTS_CRYPTOCURRENCIES)
         cursor.execute(INSERT_FACTS_MARKET_CAP_RANK)
-        cursor.execute(DEPURATE_TEMP_CRYPTOCURRENCIES)
+        #cursor.execute(DEPURATE_STG_CRYPTOCURRENCIES)
 
         self.connection_db.commit()  
         cursor.close()
