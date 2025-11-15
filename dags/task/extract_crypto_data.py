@@ -16,7 +16,7 @@ class CryptoDataCollectorExtractor(BaseOperator):
 
 
     def __init__(self,
-                vs_currency="usd",
+           
                 total=100,
                 per_page=250,
                 delay=65, 
@@ -30,9 +30,9 @@ class CryptoDataCollectorExtractor(BaseOperator):
         :param per_page: cantidad por página
         :param delay: segundos de espera entre requests (para el limit request de la cuenta free)
         :numb_req_until_waiting: es la cantidad de requests que hace antes de esperar
-        """
+        """     
         super(CryptoDataCollectorExtractor, self).__init__(*args, **kwargs)
-        self.vs_currency = vs_currency
+        self.vs_currency = "usd"
         self.total = total
         self.per_page = per_page
         self.delay = delay
