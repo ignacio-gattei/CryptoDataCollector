@@ -33,7 +33,7 @@ with DAG(
         'retries': 1,
     },
     description='Extraer, transformar y cargar de cotizaciones de cryptos en Amazon Redshift',
-    schedule_interval='*/10 * * * *',  # Ejecuta cada 10 minutos
+    schedule_interval='*/30 * * * *',  # Ejecuta cada 10 minutos
     start_date=datetime(2025, 1, 1),
     catchup=False,
 ) as dag:

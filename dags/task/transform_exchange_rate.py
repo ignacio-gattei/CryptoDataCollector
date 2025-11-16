@@ -42,5 +42,6 @@ class ExchangeRateTransformer(BaseOperator):
 
 
         df.to_parquet(self.output_path, index=False)
+        print(f"Cant. registros transformados: {len(df)}")
         return self.output_path
     

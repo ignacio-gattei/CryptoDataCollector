@@ -40,11 +40,17 @@ class CryptoDataCollectorExtractor(BaseOperator):
 
     def execute(self, context):
         self.output_path = os.path.join(self.output_path, self.output_file_name)
-        self.get_all_pages()
-        df = self.get_dataframe()
-        df.to_parquet(self.output_path)
-        if df.empty:
-            raise AirflowSkipException('No se extrayeron datos')
+
+        #Si el archivo parquet ya existe significa es un reprocesamiento de datos
+        if  os.path.exists(self.output_path):  
+            print(f"Reprocesamiento de archivo:  {self.output_file_name}" )
+        else:    
+            df = self.get_data_from_api() 
+            if df.empty:
+                raise AirflowSkipException('No se extrayeron datos de la API')
+            else:
+                df.to_parquet(self.output_path)
+
         return self.output_path
 
     def get_page(self, page):
@@ -81,8 +87,15 @@ class CryptoDataCollectorExtractor(BaseOperator):
 
         print(f"Descarga completa: {len(self.data)} registros.")
         return self.data
+    
+    def get_data_from_api(self):
+        self.get_all_pages()
+        self.covert_to_dataframe()
+        print(f"Cant. registros extraidos desde la API: {self.count_rows_df()}")
+        return self.df
+    
 
-    def get_dataframe(self):
+    def covert_to_dataframe(self):
         """Convierte los datos descargados a un df de pandas."""
         if not self.data:
             print("No hay datos.")
@@ -91,7 +104,7 @@ class CryptoDataCollectorExtractor(BaseOperator):
         self.df = pd.DataFrame(self.data)
         return self.df    
 
-    
+
 
     def print_df(self, n=None):
         """Muestra las primeras n filas."""

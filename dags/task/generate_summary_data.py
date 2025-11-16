@@ -1,12 +1,17 @@
-import requests
-import pandas as pd
-import time
 import os
 from datetime import datetime
 from airflow.models import BaseOperator
 from airflow.exceptions import AirflowSkipException
 import redshift_connector
-from decimal import Decimal, getcontext, InvalidOperation
+
+INSERT_DIM_CRYPTOCURRENCIES = """
+INSERT INTO DIM_CRYPTOCURRENCIES 
+(id, symbol, name, image) 
+SELECT 
+C.id,C.symbol,C.name,C.image
+FROM STG_CRYPTOCURRENCIES_DATA C
+WHERE NOT EXISTS (SELECT 1 FROM DIM_CRYPTOCURRENCIES D WHERE D.id =  C.id)
+""" 
 
 
 CREATE_TABLE_FACTS_MARKET_CAP_RANK= """
@@ -17,15 +22,6 @@ total_market_cap DECIMAL(38,2),
 load_date TIMESTAMP DEFAULT GETDATE()
 );
 """
-
-INSERT_DIM_CRYPTOCURRENCIES = """
-INSERT INTO DIM_CRYPTOCURRENCIES 
-(id, symbol, name, image) 
-SELECT 
-C.id,C.symbol,C.name,C.image
-FROM STG_CRYPTOCURRENCIES_DATA C
-WHERE NOT EXISTS (SELECT 1 FROM DIM_CRYPTOCURRENCIES D WHERE D.id =  C.id)
-""" 
 
 AGGREGATE_PRICE_VARIATION = """
 WITH LAST_FACTS_CRYPTOCURRENCIES AS (
@@ -44,7 +40,8 @@ SET
                                                 END
 FROM LAST_FACTS_CRYPTOCURRENCIES AS L
 WHERE STG_CRYPTOCURRENCIES_DATA.id = L.id
-AND L.rn = 1;
+AND L.rn = 1
+AND STG_CRYPTOCURRENCIES_DATA.dag_run_id = %s;
 """ 
 
 
@@ -109,10 +106,12 @@ SELECT
     C.last_updated
 FROM STG_CRYPTOCURRENCIES_DATA C
 CROSS JOIN FACTS_EXCHANGE_RATE ER
+WHERE C.dag_run_id = %s
 QUALIFY ROW_NUMBER() OVER (
     PARTITION BY C.id
     ORDER BY ABS(EXTRACT(EPOCH FROM (C.last_updated - ER.exchange_rate_date)))
-) = 1;
+) = 1
+;
 """
 
 
@@ -132,11 +131,12 @@ SELECT
     MAX(last_updated) as rank_date,
     SUM(market_cap) AS total_market_cap
 FROM STG_CRYPTOCURRENCIES_DATA
+WHERE dag_run_id = %s
 GROUP BY 1
 """
 
-DROP_TABLE_FACTS_MARKET_CAP_RANK= "DROP TABLE IF EXISTS FACTS_MARKET_CAP_RANK;"
-DEPURATE_STG_CRYPTOCURRENCIES= """DELETE STG_CRYPTOCURRENCIES_DATA WHERE last_updated < current_timestamp"""
+DELETE_FACTS_MARKET_CAP_RANK= "DELETE FROM FACTS_MARKET_CAP_RANK;"
+DEPURATE_STG_CRYPTOCURRENCIES= """DELETE FROM STG_CRYPTOCURRENCIES_DATA WHERE dag_run_id = %s"""
 
 class SummaryGenerator(BaseOperator):
     def __init__(self,                  
@@ -149,8 +149,9 @@ class SummaryGenerator(BaseOperator):
 
 
     def execute(self, context):
+        # dag_run_id : Para poder saber los datos que debo procesar en la tabla de staging dentro de mi dag run
+        self.dag_run_id = context["run_id"]
         self.connection_db = self.connect_to_db()
-        #self.drop_tables()
         self.create_tables()
         self.aggregate_crypto_data()
 
@@ -178,22 +179,22 @@ class SummaryGenerator(BaseOperator):
         self.connection_db.commit()  
         cursor.close()
 
-    def drop_tables(self):
-        cursor = self.connection_db.cursor()
-        cursor.execute(DROP_TABLE_FACTS_MARKET_CAP_RANK)    
-        self.connection_db.commit()  
-        print ("Drop tables")
-        cursor.close()
-
 
     def aggregate_crypto_data(self):
         cursor = self.connection_db.cursor()
 
-        cursor.execute(AGGREGATE_PRICE_VARIATION)
         cursor.execute(INSERT_DIM_CRYPTOCURRENCIES)
-        cursor.execute(INSERT_FACTS_CRYPTOCURRENCIES)
-        cursor.execute(INSERT_FACTS_MARKET_CAP_RANK)
-        #cursor.execute(DEPURATE_STG_CRYPTOCURRENCIES)
+        cursor.execute(AGGREGATE_PRICE_VARIATION, (self.dag_run_id,))
+        cursor.execute(INSERT_FACTS_CRYPTOCURRENCIES, (self.dag_run_id,))
+        cursor.execute(INSERT_FACTS_MARKET_CAP_RANK, (self.dag_run_id,))
+        cursor.execute(DEPURATE_STG_CRYPTOCURRENCIES, (self.dag_run_id,))
+        print(self.dag_run_id)
+        self.connection_db.commit()  
+        cursor.close()
 
+
+    def delete_tables(self):
+        cursor = self.connection_db.cursor()
+        cursor.execute(DELETE_FACTS_MARKET_CAP_RANK)    
         self.connection_db.commit()  
         cursor.close()

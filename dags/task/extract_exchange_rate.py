@@ -29,15 +29,21 @@ class ExchangeRateExtractor(BaseOperator):
 
 
     def execute(self, context):
-        self.output_path = os.path.join(self.output_path, self.output_file_name)
         if self.is_exchange_rate_supported() ==  False:
             raise AirflowSkipException('Tipo de cambio no soportado')
-        json_data =  self.get_response()
-        df = pd.DataFrame([json_data])
-        df.to_parquet(self.output_path)
-        if df.empty:
-            raise AirflowSkipException('No se extrayeron datos')
-        
+
+        self.output_path = os.path.join(self.output_path, self.output_file_name)
+
+        #Si el archivo parquet ya existe significa es un reprocesamiento de datos
+        if  os.path.exists(self.output_path):  
+            print(f"Reprocesamiento de archivo:  {self.output_file_name}" )
+        else:    
+            df = self.get_data_from_api() 
+            if df.empty:
+                raise AirflowSkipException('No se extrayeron datos de la API')
+            else:
+                df.to_parquet(self.output_path)
+
         context['ti'].xcom_push(key='source_currency', value=self.source_currency)
         context['ti'].xcom_push(key='target_currency', value=self.target_currency)
         return self.output_path
@@ -50,7 +56,20 @@ class ExchangeRateExtractor(BaseOperator):
             return response.json()
         else:
             print(f"Error {response.status_code} al consultar el tipo de cambio")
-            return []
+            return {}
+
+    def get_data_from_api(self):
+        json_data =  self.get_response()
+        df = pd.json_normalize(json_data)
+
+        if not json_data:
+            print(f"Cant. registros extraidos desde la API: 0")
+        else:
+            print(f"Cant. registros extraidos desde la API: {len(df)}")
+            
+        return df   
+
+    
 
     def is_exchange_rate_supported(self):
          if self.source_currency == "USD" and self.target_currency == "ARS":

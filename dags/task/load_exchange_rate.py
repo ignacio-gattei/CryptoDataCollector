@@ -60,7 +60,6 @@ class ExchangeRateLoader(BaseOperator):
         self.input_path = context['ti'].xcom_pull(task_ids='transform_exchange_rate')
         df = pd.read_parquet(self.input_path)
         self.connection_db = self.connect_to_db()
-        self.drop_tables()
         self.create_tables()
         self.load_data()
 
