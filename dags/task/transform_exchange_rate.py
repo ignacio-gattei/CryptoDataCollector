@@ -17,6 +17,7 @@ class ExchangeRateTransformer(BaseOperator):
         super(ExchangeRateTransformer, self).__init__(*args, **kwargs)   
         self.output_path = output_path
         self.input_path = ''
+        self.output_file_name = output_file_name
 
 
     def execute(self, context):

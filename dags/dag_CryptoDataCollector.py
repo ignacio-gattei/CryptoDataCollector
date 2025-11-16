@@ -5,12 +5,14 @@ from airflow.exceptions import AirflowSkipException
 from airflow.operators.python import PythonOperator
 from airflow.operators.bash_operator import BashOperator
 
-from dags.task.extract__crypto_data import CryptoDataCollectorExtractor
+from dags.task.extract_crypto_data import CryptoDataCollectorExtractor
 from dags.task.transform_crypto_data import CryptoDataCollectorTransformer
 from dags.task.load_crypto_data import CryptoDataCollectorLoader
 from task.extract_exchange_rate import ExchangeRateExtractor
 from task.load_exchange_rate import ExchangeRateLoader
 from task.transform_exchange_rate import ExchangeRateTransformer
+from task.generate_summary_data import SummaryGenerator
+
 
 # Ruta absoluta del directorio del DAG actual
 DAG_PATH = os.path.dirname(os.path.realpath(__file__))
@@ -77,13 +79,13 @@ with DAG(
         task_id='load_exchange_rate_to_redshift'
     )
 
-    load_exchange_rate = ExchangeRateLoader(
-        task_id='load_exchange_rate_to_redshift'
+
+    generate_summary_data = SummaryGenerator(
+        task_id='generate_summary_data'
     )
-
-
+ 
  
     # Dependencia de tareas
     extract_exchange_rate >> transform_exchange_rate >> load_exchange_rate  
     extract_crypto_data >> transform_crypto_data >> load_crypto_data 
-    load_exchange_rate >> load_crypto_data
+    load_exchange_rate >> load_crypto_data >> generate_summary_data

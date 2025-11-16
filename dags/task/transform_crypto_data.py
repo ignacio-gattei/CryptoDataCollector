@@ -17,7 +17,8 @@ class CryptoDataCollectorTransformer(BaseOperator):
         Inicializa clase
         """
         super(CryptoDataCollectorTransformer, self).__init__(*args, **kwargs)   
-        self.output_path = output_path
+        self.output_path = output_path 
+        self.output_file_name = output_file_name
         self.input_path = ''
 
 

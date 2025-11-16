@@ -7,21 +7,13 @@ from airflow.models import BaseOperator
 from airflow.exceptions import AirflowSkipException
 
 
-BASE_URL = "https://api.coingecko.com/api/v3/coins/markets"
-FILE_DATA_NAME = "crypto_data_extracted.parquet"
-
 class CryptoDataCollectorExtractor(BaseOperator):
-
-    
-
-
+    template_fields = ("output_file_name",)
     def __init__(self,
-           
-                total=100,
-                per_page=250,
-                delay=65, 
-                numb_reqs_until_waiting=4,
+                total_extract=100,
+                api_endpoint = "",
                 output_path = "",
+                output_file_name = "",
                 *args,**kwargs):
         """
         Inicializa clase
@@ -30,20 +22,24 @@ class CryptoDataCollectorExtractor(BaseOperator):
         :param per_page: cantidad por página
         :param delay: segundos de espera entre requests (para el limit request de la cuenta free)
         :numb_req_until_waiting: es la cantidad de requests que hace antes de esperar
-        """     
+        """
         super(CryptoDataCollectorExtractor, self).__init__(*args, **kwargs)
+        self.api_endpoint = api_endpoint
         self.vs_currency = "usd"
-        self.total = total
-        self.per_page = per_page
-        self.delay = delay
-        self.pages = total // per_page
+        self.total = total_extract
+        self.numb_reqs_until_waiting = 4
+        self.per_page = min(250,total_extract)
+        self.delay = 65
+        self.order = "market_cap_desc"
+        self.pages = total_extract // self.per_page
         self.data = []
-        self.df = pd.DataFrame()
-        self.numb_reqs_until_waiting = numb_reqs_until_waiting
-        self.output_path = os.path.join(output_path, FILE_DATA_NAME)
-
+        self.df = pd.DataFrame()     
+        self.output_path = output_path
+        self.output_file_name = output_file_name
+ 
 
     def execute(self, context):
+        self.output_path = os.path.join(self.output_path, self.output_file_name)
         self.get_all_pages()
         df = self.get_dataframe()
         df.to_parquet(self.output_path)
@@ -55,13 +51,13 @@ class CryptoDataCollectorExtractor(BaseOperator):
         """Request, obtiene una pagina"""
         params = {
             "vs_currency": self.vs_currency,
-            "order": "market_cap_desc",
+            "order": self.order,
             "per_page": self.per_page,
             "page": page,
             "sparkline": "false",
             "price_change_percentage": "1h,24h,7d"
         }
-        response = requests.get(BASE_URL, params=params)
+        response = requests.get(self.api_endpoint, params=params)
         if response.status_code == 200:
             return response.json()
         else:
@@ -120,6 +116,7 @@ class CryptoDataCollectorExtractor(BaseOperator):
         self.df.to_csv(filename, index=False, encoding="utf-8-sig")
         print(f"Archivo guardado como: {filename}")
         return filename
+    
 
     def count_rows_df(self):
         """Devuelve e imprime la cantidad de filas del DataFrame."""
@@ -131,9 +128,4 @@ class CryptoDataCollectorExtractor(BaseOperator):
         print(f"Cantidad de registros en el DataFrame: {count}")
         return count
 
-if __name__ == "__main__":
-    cg = CryptoDataCollectorExtractor(vs_currency="usd", total=500)
-    cg.get_all_pages()
-    cg.to_dataframe()
-    cg.print_df()
-    cg.count_rows_df()
+
