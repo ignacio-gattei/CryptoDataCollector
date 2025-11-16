@@ -18,13 +18,7 @@ class CryptoDataCollectorTransformer(BaseOperator):
 
     template_fields = ("output_file_name",)
 
-    def __init__(
-        self,
-        *args,
-        output_path="",
-        output_file_name="",
-        **kwargs,
-    ):
+    def __init__(self, *args, output_path="", output_file_name="", **kwargs):
         """
         Inicializa la clase.
 
