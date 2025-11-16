@@ -177,7 +177,9 @@ def to_decimal_2(value: Union[str, int, float, Decimal]) -> Optional[Decimal]:
 
     try:
         decimal_value = Decimal(str(value))
-        decimal_value = decimal_value.quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)
+        decimal_value = decimal_value.quantize(
+            Decimal("0.01"), rounding=ROUND_HALF_UP
+        )
         return decimal_value
     except (InvalidOperation, ValueError, TypeError):
-        return Non
+        return None

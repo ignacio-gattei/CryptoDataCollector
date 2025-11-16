@@ -4,8 +4,6 @@ Incluye creación de tablas, inserción de datos y borrado de tablas.
 """
 
 import os
-from datetime import datetime
-
 import pandas as pd
 import redshift_connector
 from airflow.models import BaseOperator

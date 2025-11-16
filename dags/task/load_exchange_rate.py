@@ -29,8 +29,8 @@ CREATE TABLE IF NOT EXISTS DIM_CURRENCY (
 """
 
 INSERT_TABLE_FACTS_EXCHANGE_RATE = """
-INSERT INTO FACTS_EXCHANGE_RATE 
-(source_currency_id, target_currency_id, exchange_rate, exchange_rate_date) 
+INSERT INTO FACTS_EXCHANGE_RATE
+(source_currency_id, target_currency_id, exchange_rate, exchange_rate_date)
 VALUES (%s, %s, %s, %s)
 """
 

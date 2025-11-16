@@ -1,8 +1,6 @@
 import os
 from datetime import datetime
 from airflow import DAG
-from airflow.operators.python import PythonOperator
-from airflow.operators.bash_operator import BashOperator
 
 from dags.task.extract_crypto_data import CryptoDataCollectorExtractor
 from dags.task.transform_crypto_data import CryptoDataCollectorTransformer
