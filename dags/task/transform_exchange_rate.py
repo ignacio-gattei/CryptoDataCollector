@@ -1,31 +1,26 @@
-import requests
 import pandas as pd
-import time
 import os
-from datetime import datetime
 from airflow.models import BaseOperator
 from airflow.exceptions import AirflowSkipException
-from decimal import Decimal, getcontext, InvalidOperation
-from decimal import Decimal, InvalidOperation, ROUND_HALF_UP
 from utils.functions import get_currency_name,to_decimal_2
-
-FILE_DATA_NAME = "exchange_rate_transformed.parquet"
 
 
 class ExchangeRateTransformer(BaseOperator):
+    template_fields = ("output_file_name",)
     def __init__(self,      
                 output_path = "",
+                output_file_name = "",
                 *args,**kwargs):
         """
         Inicializa clase
         """
         super(ExchangeRateTransformer, self).__init__(*args, **kwargs)   
-        self.output_path = os.path.join(output_path , FILE_DATA_NAME)
+        self.output_path = output_path
         self.input_path = ''
 
 
-
     def execute(self, context):
+        self.output_path = os.path.join(self.output_path, self.output_file_name)
         self.input_path = context['ti'].xcom_pull(task_ids='extract_exchange_rate')
         source_currency_id = context['ti'].xcom_pull(task_ids='extract_exchange_rate', key='source_currency')
         target_currency_id = context['ti'].xcom_pull(task_ids='extract_exchange_rate', key='target_currency')

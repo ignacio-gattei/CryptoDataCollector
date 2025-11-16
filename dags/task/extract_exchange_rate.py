@@ -1,20 +1,18 @@
 import requests
 import pandas as pd
-import time
 import os
 from datetime import datetime
 from airflow.models import BaseOperator
 from airflow.exceptions import AirflowSkipException
 
 
-BASE_URL = "https://dolarapi.com/v1/dolares/bolsa"
-FILE_DATA_NAME = "exchange_rate_extracted.parquet"
-
 class ExchangeRateExtractor(BaseOperator):
-
+    template_fields = ("output_file_name",)
     def __init__(self,
+                api_endpoint = "",
                 source_currency = "USD",
                 target_currency = "ARS",
+                output_file_name = "",
                 output_path = "",
                 *args,**kwargs):
         """
@@ -23,12 +21,15 @@ class ExchangeRateExtractor(BaseOperator):
         :param target_currency: moneda destino
         """
         super(ExchangeRateExtractor, self).__init__(*args, **kwargs)
+        self.api_endpoint = api_endpoint
         self.source_currency = source_currency
         self.target_currency = target_currency
-        self.output_path = os.path.join(output_path, FILE_DATA_NAME)
+        self.output_file_name = output_file_name
+        self.output_path = output_path
 
 
     def execute(self, context):
+        self.output_path = os.path.join(self.output_path, self.output_file_name)
         if self.is_exchange_rate_supported() ==  False:
             raise AirflowSkipException('Tipo de cambio no soportado')
         json_data =  self.get_response()
@@ -44,7 +45,7 @@ class ExchangeRateExtractor(BaseOperator):
 
 
     def get_response(self):
-        response = requests.get(BASE_URL)
+        response = requests.get(self.api_endpoint)
         if response.status_code == 200:
             return response.json()
         else:

@@ -1,6 +1,4 @@
-import requests
 import pandas as pd
-import time
 import os
 from datetime import datetime
 from airflow.models import BaseOperator
@@ -8,23 +6,24 @@ from airflow.exceptions import AirflowSkipException
 from decimal import Decimal, getcontext, InvalidOperation
 from utils.functions import normalize_to_decimal,normalize_to_int
 
-FILE_DATA_NAME = "crypto_data_transformed.parquet"
-
 
 class CryptoDataCollectorTransformer(BaseOperator):
+    template_fields = ("output_file_name",)
     def __init__(self,      
                 output_path = "",
+                output_file_name = "",
                 *args,**kwargs):
         """
         Inicializa clase
         """
         super(CryptoDataCollectorTransformer, self).__init__(*args, **kwargs)   
-        self.output_path = os.path.join(output_path , FILE_DATA_NAME)
+        self.output_path = output_path
         self.input_path = ''
 
 
 
     def execute(self, context):
+        self.output_path = os.path.join(self.output_path, self.output_file_name)
         self.input_path = context['ti'].xcom_pull(task_ids='extract_crypto_data')
         df = pd.read_parquet(self.input_path)
 
