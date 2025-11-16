@@ -127,19 +127,19 @@ class SummaryGenerator(BaseOperator):
     """
 
     def __init__(self, *args, **kwargs):
-        """Inicializa clase."""
+        """Inicializa clase"""
         super().__init__(*args, **kwargs)
         self.connection_db = None
 
     def execute(self, context):
-        """Ejecuta todo el proceso de agregación y carga."""
+        """Ejecuta todo el proceso de agregación y carga"""
         self.dag_run_id = context["run_id"]
         self.connection_db = self.connect_to_db()
         self.create_tables()
         self.aggregate_crypto_data()
 
     def connect_to_db(self):
-        """Conecta a Redshift y retorna la conexión."""
+        """Conecta a Redshift y retorna la conexión"""
         try:
             conn = redshift_connector.connect(
                 host=os.environ['REDSHIFT_HOST'],
