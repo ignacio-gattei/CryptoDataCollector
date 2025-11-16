@@ -1,5 +1,4 @@
 import pandas as pd
-from datetime import datetime
 from decimal import Decimal, getcontext, InvalidOperation, ROUND_HALF_UP
 from typing import List, Optional, Union
 
@@ -181,4 +180,4 @@ def to_decimal_2(value: Union[str, int, float, Decimal]) -> Optional[Decimal]:
         decimal_value = decimal_value.quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)
         return decimal_value
     except (InvalidOperation, ValueError, TypeError):
-        return None
+        return Non

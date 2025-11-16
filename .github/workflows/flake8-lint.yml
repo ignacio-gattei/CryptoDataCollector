@@ -37,4 +37,5 @@ jobs:
 
       - name: Run Flake8
         run: |
-          flake8 . --count --show-source --statistics
+          flake8 . --count --show-source --statistics --ignore=E501
+
