@@ -77,6 +77,7 @@ Este modelo define las entidades principales, sus atributos y las relaciones que
 
 ![Diagrama ER](https://private-user-images.githubusercontent.com/240181618/515409862-8ac3c981-c4cd-4183-9497-48bd0b4a8717.png?jwt=eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJnaXRodWIuY29tIiwiYXVkIjoicmF3LmdpdGh1YnVzZXJjb250ZW50LmNvbSIsImtleSI6ImtleTUiLCJleHAiOjE3NjM0MTczOTgsIm5iZiI6MTc2MzQxNzA5OCwicGF0aCI6Ii8yNDAxODE2MTgvNTE1NDA5ODYyLThhYzNjOTgxLWM0Y2QtNDE4My05NDk3LTQ4YmQwYjRhODcxNy5wbmc_WC1BbXotQWxnb3JpdGhtPUFXUzQtSE1BQy1TSEEyNTYmWC1BbXotQ3JlZGVudGlhbD1BS0lBVkNPRFlMU0E1M1BRSzRaQSUyRjIwMjUxMTE3JTJGdXMtZWFzdC0xJTJGczMlMkZhd3M0X3JlcXVlc3QmWC1BbXotRGF0ZT0yMDI1MTExN1QyMjA0NThaJlgtQW16LUV4cGlyZXM9MzAwJlgtQW16LVNpZ25hdHVyZT05NjkwYTc0ZmMzOTQ1MGJiNWVlYzNkY2VkOTQ1YmNjZmI4ZmU1ZjNjMWVlMzlkMjY0OGVlNzg1YTI5NmJlMjUwJlgtQW16LVNpZ25lZEhlYWRlcnM9aG9zdCJ9._wES2beXyxX7LUX1_Vac_UdInrTkcrEhCvBvVOk6GHU)
 
+  <br>
 
 ### Descripción de Tablas del Modelo
 
@@ -86,7 +87,9 @@ Tabla de staging que almacena los datos crudos de criptomonedas obtenidos desde 
 
 `FACTS_CRYPTOCURRENCIES`
 
-Tabla de hechos principal de cotizaciones de criptomonedas. Contiene precios, variaciones y métricas del mercado, incluyendo el precio convertido a otras monedas.
+Tabla de hechos principal de cotizaciones de criptomonedas. Contiene precios,  variaciones y métricas del  mercado, incluyendo el precio  convertido a otras monedas.
+Los datos de esta tabla se cargan desde la tabla de staging combinando datos con otras tablas del modelo, 
+la task encargada de esto es `generate_summary_data`.
 
 `DIM_CRYPTOCURRENCIES`
 
@@ -99,7 +102,31 @@ Hechos relacionados al ranking por capitalización del mercado. Permite hacer an
 `FACTS_EXCHANGE_RATE`
 
 Tabla de hechos que guarda los tipos de cambio entre distintas monedas, incluyendo fecha y valor de la conversión.
+Los datos de esta tabla se cargan directamente desde la tarea de load programada desde Airflow.
 
 `DIM_CURRENCY`
 
 Dimensión que contiene la información de cada moneda utilizada para convertir las cotizaciones (ej.: USD, ARS, EUR).
+
+<br>
+
+### Atributos calculados
+
+A continuación, se detallan los campos que son generados durante el proceso de transformación y carga
+
+`price_change_since_last_update` : Calcula la variación absoluta del precio de una criptomoneda desde la última actualización almacenada.
+Este indicador permite detectar movimientos bruscos en un corto período, siendo útil para identificar oportunidades o riesgos en estrategias de trading.
+
+`price_change_percentage_since_last_update` : Determina la variación porcentual del precio respecto al valor anterior.
+Ayuda a medir la intensidad del cambio de precio y compararlo entre diferentes criptomonedas.
+
+`current_price_other_currency` : Indica el precio de la criptomoneda convertido a otra moneda (por ejemplo: ARS, EUR), facilitando el análisis según intereses o mercados específicos.
+
+`market_cap_short_number` : Representa la capitalización de mercado en un formato abreviado y legible, sto simplifica la lectura en dashboards y reportes.
+Ejemplos: K → miles, M → millones, B → billones.
+
+
+
+`total_market_cap` : Valor agregado que resume la capitalización total de las criptomonedas agrupadas por rankings:
+TOP 100, TOP 50, TOP 20 y TOP 10.
+Permite evaluar fácilmente cómo se distribuye el valor del mercado cripto entre las principales.
