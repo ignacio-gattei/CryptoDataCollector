@@ -12,6 +12,7 @@ from utils.functions import format_number_short
 
 CREATE_TABLE_STG_CRYPTOCURRENCIES_DATA = """
 CREATE TABLE IF NOT EXISTS STG_CRYPTOCURRENCIES_DATA (
+    dag_run_id VARCHAR(50) PRIMARY KEY,
     id VARCHAR(100),
     symbol VARCHAR(100),
     name VARCHAR(500),
@@ -40,8 +41,7 @@ CREATE TABLE IF NOT EXISTS STG_CRYPTOCURRENCIES_DATA (
     atl_change_percentage DECIMAL(38,18),
     atl_date TIMESTAMP,
     load_date TIMESTAMP DEFAULT GETDATE(),
-    last_updated TIMESTAMP,
-    dag_run_id VARCHAR(50)
+    last_updated TIMESTAMP
 );
 """
 

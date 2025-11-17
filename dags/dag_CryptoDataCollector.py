@@ -29,14 +29,14 @@ with DAG(
         "retries": 1,
     },
     description="Extraer, transformar y cargar cotizaciones de cryptos en Amazon Redshift",
-    schedule_interval="*/30 * * * *",  # Ejecuta cada 30 minutos
+    schedule_interval="*/10 * * * *",  # Ejecuta cada 30 minutos
     start_date=datetime(2025, 1, 1),
     catchup=False,
 ) as dag:
 
     extract_crypto_data = CryptoDataCollectorExtractor(
         task_id="extract_crypto_data",
-        total_extract=10,
+        total_extract=100,
         api_endpoint=ENDPOINT_API_CRYPTO,
         output_path=DATA_PATH,
         output_file_name="{{ ts_nodash }}_extracted_crypto_data.parquet",
