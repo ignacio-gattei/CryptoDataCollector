@@ -1,7 +1,7 @@
 
 # Proyecto de Data Engineering - Crypto Data Collector con Airflow
 
-###  Introducción
+####  Introducción
 
 Este proyecto implementa un pipeline de datos en Apache Airflow para automatizar la consulta, el procesamiento y el almacenamiento de cotizaciones de criptomonedas.
 
@@ -12,16 +12,62 @@ Se implementaron agregaciones para calcular el top de capitalización de mercado
 Además, se integró una API adicional que permite consultar el tipo de cambio en distintas monedas, posibilitando visualizar las cotizaciones de las criptomonedas en la divisa deseada.
 
 
------------
 
-###  ETL implementado
+## ETL
 
-El ETL implementado consta de una serie de tareas configuradas dentro de un DAG de Airflow, encargadas de la extracción, transformación y carga de datos.
+A continuación se detallan las tareas que componen el DAG principal del proceso ETL en Apache Airflow.
 
-Las tareas son las siguientes:
+Estas tareas trabajan de forma orquestada para garantizar que la información se procese de manera automatizada, confiable y lista para análisis financiero.
 
-- **extract_crypto_data**: Obtiene las cotizaciones de las principales criptomonedas (top 100), así como información de capitalización, volumen operado, máximos y mínimos históricos, a partir de una API pública provista por CoinGecko.
+#### `extract_crypto_data`
+Obtiene las cotizaciones de las principales criptomonedas (Top 100) e información relevante como:
+- Capitalización de mercado
+- Volumen operado
+- Máximos y mínimos históricos
 
-- **transform_crypto_data**: Normaliza los valores obtenidos por la API, convirtiendo números en notación científica a tipos de datos Decimal o enteros, asegurando consistencia y precisión en los datos.
+Los datos se obtienen desde una API pública provista por CoinGecko.
 
-- **load_crypto_data**: Carga los datos previamente transformados en una tabla de staging dentro del data warehouse. Además, realiza una agregación simple para calcular la capitalización de mercado de forma legible, facilitando su análisis y lectura humana
+------------
+
+#### `transform_crypto_data`
+Normaliza los valores obtenidos por la API:
+- Convierte números en notación científica a tipos Decimal o Integer
+- Garantiza consistencia y precisión para su análisis
+
+------------
+#### `load_crypto_data`
+- Carga los datos ya transformados en una tabla de staging dentro del data warehouse.
+- Creación automática de estructura de tablas si no existe
+- Anade una nueva columna calculada, con la capitalizacion de mercado de la criptomoneda en forma corta y legible (Miles, Millones , Billones)
+
+
+------------
+
+#### `extract_exchange_rate`
+Consulta una API externa para obtener el tipo de cambio actualizado de las monedas indicadas (USD, EUR, ARS, etc.).
+
+------------
+
+#### `transform_exchange_rate`
+Prepara los datos del tipo de cambio para su carga:
+- Formateo del cambio a decimal y preparacion de Dataframe listo para cargar en el Data warehouse
+- Se agrega el nombre descriptivo de cada moneda como atributo adicional
+
+------------
+
+#### `load_exchange_rate`
+Carga los tipos de cambio al data warehouse, actualizando:
+- Tablas de dimensiones
+- Tablas de hechos relacionadas al tipo de cambio
+
+------------
+
+#### `generate_summary_data`
+Realiza las principales tareas de agregación y enriquecimiento analítico:
+
+- Mueve los datos desde la tabla de staging hacia las entidades finales del modelo (DIM y FACTS)
+- Calcula valores de las criptomonedas en otra diivisa, indicada en el proceso de extraccion de tipo de cambio.
+- Genera un resumen de market cap de las principales criptomonedas agrupado por:
+  - TOP 100 , TOP 50 ,TOP 20, TOP 10
+- Calcula la variación de precio respecto del último valor procesado, esto permite detectar movimientos grandes de las cotizaciones de criptomonedas en casi tiempo real, útil para estrategias de trading.
+
