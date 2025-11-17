@@ -15,7 +15,7 @@ Además, se integró una API adicional que permite consultar el tipo de cambio e
 
 ## ETL
 
-A continuación se detallan las tareas que componen el DAG principal del proceso ETL en Apache Airflow.
+A continuación se detallan las tareas que componen el DAG principal `dag_CryptoDataCollector` , del proceso ETL en Apache Airflow.
 
 Estas tareas trabajan de forma orquestada para garantizar que la información se procese de manera automatizada, confiable y lista para análisis financiero.
 
@@ -130,3 +130,74 @@ Ejemplos: K → miles, M → millones, B → billones.
 `total_market_cap` : Valor agregado que resume la capitalización total de las criptomonedas agrupadas por rankings:
 TOP 100, TOP 50, TOP 20 y TOP 10.
 Permite evaluar fácilmente cómo se distribuye el valor del mercado cripto entre las principales.
+
+  <br>
+
+## Requisitos
+
+Para ejecutar Apache Airflow utilizando Docker Compose, necesitás contar con:
+
+- **Docker 28.5.1**  
+- **Docker Compose v2.40.0**
+- **Python v3.1**  
+- **Sistema Operativo compatible** : Linux 
+
+Librerias python utilizadas : numpy, pandas, redshift_connector, pytest
+
+  
+   <br>
+
+## Ejecución del Proyecto
+
+#### 1) Clonar el repositorio
+
+```bash
+git clone https://github.com/ignacio-gattei/CryptoDataCollector.git
+cd CryptoDataCollector
+```
+#### 2) Configurar variables de entorno
+
+Crear un archivo .env en la raíz del proyecto (si no está creado). Se proporcina un esqueleto del mismo en el repositorio para completar con las credenciales correspondientes.
+
+#### 3) Ejecutar el proyecto con Makefile
+Este proyecto incluye un Makefile que simplifica la ejecución:
+
+Construir e iniciar todos los servicios
+
+```bash
+make run-project
+```
+
+Detener y  contenedores
+
+```bash
+make down
+```
+
+Obtener Logs
+
+```bash
+make logs
+```
+
+Ejecutar pruebas unitarias
+
+```bash
+make test
+```
+
+#### 4) Acceso a la interfaz de Airflow
+
+Una vez levantado el entorno, ingresar desde el navegador a:
+```bash
+http://localhost:8080
+```
+
+Inrgresar el Usuario y Contrasena proporcionadas
+
+
+#### 5) Ejecutar ETL
+
+Identificar al DAG `dag_CryptoDataCollector`
+Encender y hacer un run del mismo como muestra la imagen.
+
