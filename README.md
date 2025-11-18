@@ -138,7 +138,7 @@ Este indicador permite detectar movimientos bruscos en un corto período, siendo
 `price_change_percentage_since_last_update` : Determina la variación porcentual del precio respecto al valor anterior.
 Ayuda a medir la intensidad del cambio de precio y compararlo entre diferentes criptomonedas.
 
-`current_price_other_currency` : Indica el precio de la criptomoneda convertido a otra moneda (por ejemplo: ARS, EUR), facilitando el análisis según intereses o mercados específicos.
+`current_price_other_currency` : Indica el precio de la criptomoneda convertido a otra moneda (por ejemplo: ARS, USD), facilitando el análisis según intereses o mercados específicos.
 
 `market_cap_short_number` : Representa la capitalización de mercado en un formato abreviado y legible, sto simplifica la lectura en dashboards y reportes.
 Ejemplos: K → miles, M → millones, B → billones.
@@ -148,6 +148,13 @@ Ejemplos: K → miles, M → millones, B → billones.
 `total_market_cap` : Valor agregado que resume la capitalización total de las criptomonedas agrupadas por rankings:
 TOP 100, TOP 50, TOP 20 y TOP 10.
 Permite evaluar fácilmente cómo se distribuye el valor del mercado cripto entre las principales.
+
+  <br>
+
+## APIS utilizadas
+ **Cotizacion de criptomonedas:**       https://api.coingecko.com/api/v3/coins/markets
+ 
+ **Cotizacion del dolar:**       https://dolarapi.com/v1/dolares/bolsa
 
   <br>
 
