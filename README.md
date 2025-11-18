@@ -19,6 +19,24 @@ A continuación se detallan las tareas que componen el DAG principal `dag_Crypto
 
 Estas tareas trabajan de forma orquestada para garantizar que la información se procese de manera automatizada, confiable y lista para análisis financiero.
 
+#### Estructura del DAG
+
+```
+dags/
+│
+├── dag_CryptoDataCollector.py
+│
+└── task/
+    ├── extract_crypto_data.py
+    ├── transform_crypto_data.py
+    ├── load_exchange_rate.py
+    ├── transform_exchange_rate.py
+    ├── transform_exchange_rate.py
+    ├── load_exchange_rate.py
+    └── generate_summary_data.py
+```
+
+
 #### `extract_crypto_data`
 Obtiene las cotizaciones de las principales criptomonedas (Top 100) e información relevante como:
 - Capitalización de mercado
