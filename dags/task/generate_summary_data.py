@@ -101,18 +101,24 @@ QUALIFY ROW_NUMBER() OVER (
 INSERT_FACTS_MARKET_CAP_RANK = """
 INSERT INTO FACTS_MARKET_CAP_RANK (ranking, rank_date, total_market_cap)
 SELECT
-    CASE
-        WHEN market_cap_rank <= 10 THEN 'TOP 10'
-        WHEN market_cap_rank <= 20 THEN 'TOP 20'
-        WHEN market_cap_rank <= 50 THEN 'TOP 50'
-        WHEN market_cap_rank <= 100 THEN 'TOP 100'
-        ELSE 'TOP +100'
-    END AS ranking,
+    ranking,
     MAX(last_updated) AS rank_date,
     SUM(market_cap) AS total_market_cap
-FROM STG_CRYPTOCURRENCIES_DATA
-WHERE dag_run_id = %s
-GROUP BY 1;
+FROM (
+    SELECT
+        CASE
+            WHEN market_cap_rank >= 1  and  market_cap_rank <= 10 THEN 'TOP 10'
+            WHEN market_cap_rank > 10  and market_cap_rank <= 20 THEN 'TOP 10-20'
+            WHEN market_cap_rank > 20  and  market_cap_rank <= 50 THEN 'TOP 20-50'
+            WHEN market_cap_rank > 50  and market_cap_rank <= 100 THEN 'TOP 50-100'
+            ELSE 'TOP +100'
+        END AS ranking,
+        last_updated,
+        market_cap
+    FROM STG_CRYPTOCURRENCIES_DATA
+    WHERE dag_run_id = %s
+) t
+GROUP BY ranking
 """
 
 DELETE_FACTS_MARKET_CAP_RANK = "DELETE FROM FACTS_MARKET_CAP_RANK;"
