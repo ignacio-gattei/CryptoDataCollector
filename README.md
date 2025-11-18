@@ -48,7 +48,7 @@ Los datos se obtienen desde una API pública provista por CoinGecko.
 
 #### `transform_crypto_data`
 Normaliza los valores obtenidos por la API:
-- Convierte números en notación científica a tipos Decimal o Integer
+- Convierte números en notación científica devueltos por la API a tipos de datos mas normalizados (Decimal o Integer)
 - Garantiza consistencia y precisión para su análisis
 
 #### `load_crypto_data`
