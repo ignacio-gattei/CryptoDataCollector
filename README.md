@@ -201,3 +201,4 @@ Inrgresar el Usuario y Contrasena proporcionadas
 Identificar al DAG `dag_CryptoDataCollector`
 Encender y hacer un run del mismo como muestra la imagen.
 
+<img width="1890" height="316" alt="Image" src="https://github.com/user-attachments/assets/4fe1fa60-f257-44c7-a1c2-d3d0b89752a8" />
