@@ -186,10 +186,10 @@ Construir e iniciar todos los servicios
 make run-project
 ```
 
-Detener y  contenedores
+Detener contenedor
 
 ```bash
-make down
+make stop
 ```
 
 Obtener Logs
