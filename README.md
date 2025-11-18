@@ -91,7 +91,7 @@ Realiza las principales tareas de agregación y enriquecimiento analítico:
 El siguiente Modelo Entidad–Relación (ERD) representa la estructura lógica del Data Warehouse diseñado para el procesamiento y análisis de información de criptomonedas. 
 Su objetivo es organizar los datos de forma óptima, garantizando integridad y consistencia  para consultas analíticas.
 
-Este modelo define las entidades principales, sus atributos y las relaciones que existen entre ellas. De esta manera, se proporciona una vista clara del flujo y almacenamiento de los datos a lo largo del proceso ETL.
+Este modelo define las entidades principales, sus atributos y las relaciones que existen entre ellas. De esta manera, se proporciona una vista clara del flujo y almacenamiento de los datos .
 
 ![Diagrama ER](https://private-user-images.githubusercontent.com/240181618/515409862-8ac3c981-c4cd-4183-9497-48bd0b4a8717.png?jwt=eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJnaXRodWIuY29tIiwiYXVkIjoicmF3LmdpdGh1YnVzZXJjb250ZW50LmNvbSIsImtleSI6ImtleTUiLCJleHAiOjE3NjM0MTczOTgsIm5iZiI6MTc2MzQxNzA5OCwicGF0aCI6Ii8yNDAxODE2MTgvNTE1NDA5ODYyLThhYzNjOTgxLWM0Y2QtNDE4My05NDk3LTQ4YmQwYjRhODcxNy5wbmc_WC1BbXotQWxnb3JpdGhtPUFXUzQtSE1BQy1TSEEyNTYmWC1BbXotQ3JlZGVudGlhbD1BS0lBVkNPRFlMU0E1M1BRSzRaQSUyRjIwMjUxMTE3JTJGdXMtZWFzdC0xJTJGczMlMkZhd3M0X3JlcXVlc3QmWC1BbXotRGF0ZT0yMDI1MTExN1QyMjA0NThaJlgtQW16LUV4cGlyZXM9MzAwJlgtQW16LVNpZ25hdHVyZT05NjkwYTc0ZmMzOTQ1MGJiNWVlYzNkY2VkOTQ1YmNjZmI4ZmU1ZjNjMWVlMzlkMjY0OGVlNzg1YTI5NmJlMjUwJlgtQW16LVNpZ25lZEhlYWRlcnM9aG9zdCJ9._wES2beXyxX7LUX1_Vac_UdInrTkcrEhCvBvVOk6GHU)
 
