@@ -9,7 +9,7 @@ El flujo extrae información desde APIs públicas, transforma los datos y los ca
 
 Se implementaron agregaciones para calcular el top de capitalización de mercado de las principales criptomonedas y se realiza el cálculo de la variación frecuente de precios, lo que permite identificar casi en tiempo real aquellas criptomonedas que experimentan cambios significativos, útil para evaluar oportunidades o riesgos en estrategias de trading.
 
-Además, se integró una API adicional que permite consultar el tipo de cambio en distintas monedas, posibilitando visualizar las cotizaciones de las criptomonedas en la divisa deseada.
+Además, se integró una API adicional que permite consultar el tipo de cambio en distintas monedas, posibilitando visualizar las cotizaciones de las criptomonedas en otra divisa (por el momento solo soportada la moneda Pesos)
 
 
 
@@ -17,7 +17,7 @@ Además, se integró una API adicional que permite consultar el tipo de cambio e
 
 A continuación se detallan las tareas que componen el DAG principal `dag_CryptoDataCollector` , del proceso ETL en Apache Airflow.
 
-Estas tareas trabajan de forma orquestada para garantizar que la información se procese de manera automatizada, confiable y lista para análisis financiero.
+Estas tareas trabajan de forma orquestada para garantizar que la información se procese de manera automatizada, consistente y lista para analizar.
 
 #### Estructura del DAG
 
